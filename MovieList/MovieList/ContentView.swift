@@ -12,7 +12,9 @@ struct ContentView: View {
     var body: some View {
         TabView {
             MovieListView(viewModel: MovieListViewModel())
+                .tabItem { Image(systemName: "movieclapper") }
             AboutView()
+                .tabItem { Image(systemName: "info.circle") }
         }
     }
 }

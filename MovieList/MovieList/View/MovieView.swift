@@ -23,11 +23,14 @@ struct MovieView: View {
                     Spacer()
                 }
                 if showOverview {
-                    Text(movie.overview ?? "")
-                        .font(.caption)
-                        .foregroundStyle(Color.white)
+                    HStack {
+                        Text(movie.overview ?? "")
+                            .font(.caption)
+                            .foregroundStyle(Color.white)
+                            .background(.white.opacity(0.2))
+                        Spacer()
+                    }
                 }
-
             }
             .padding(EdgeInsets(top: 0, leading: 15, bottom: 15, trailing: 15))
         }.onTapGesture {
