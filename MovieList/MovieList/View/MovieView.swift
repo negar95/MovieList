@@ -13,12 +13,7 @@ struct MovieView: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            HStack {
-                Spacer()
-                AuthorizedAsyncImage(url: movie.posterPath, token: token)
-                    .background(Color.gray.opacity(0.5))
-                Spacer()
-            }
+            AuthorizedAsyncImage(url: movie.posterPath, token: token)
             VStack {
                 HStack {
                     Text(movie.title ?? "")
@@ -39,4 +34,5 @@ struct MovieView: View {
             showOverview = !showOverview
         }
     }
+
 }

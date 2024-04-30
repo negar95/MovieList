@@ -11,15 +11,19 @@ struct MovieListView: View {
     @ObservedObject var viewModel: MovieListViewModel
 
     var body: some View {
-        List {
-            ForEach(viewModel.movies) { movie in
-                MovieView(movie: movie)
+        NavigationStack {
+            List {
+                ForEach(Array(viewModel.movies)) { movie in
+                    MovieView(movie: movie)
+                }
+                if viewModel.hasMoreMovies {
+                    lastRowView
+                }
             }
-            if viewModel.hasMoreMovies {
-                lastRowView
-            }
+            .listStyle(.plain)
         }
-        .listStyle(.plain)
+        .searchable(text: $viewModel.searchText, prompt: "Search movies")
+        .navigationTitle("Movies")
         .onAppear {
             viewModel.loadMovies()
         }

@@ -21,15 +21,15 @@ struct MovieResponse: Decodable {
     }
 }
 
-struct Movie: Decodable, Identifiable {
-    let id: Int?
+struct Movie: Decodable, Identifiable, Hashable {
+    let id: Int
     let posterPath: URL?
     let overview: String?
     let title: String?
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        id = try values.decodeIfPresent(Int.self, forKey: .id)
+        id = try values.decode(Int.self, forKey: .id)
         let posterPathString = try values.decodeIfPresent(String.self, forKey: .posterPath) ?? ""
         posterPath = URL(string: imageBaseUrl + posterPathString)
         overview = try values.decodeIfPresent(String.self, forKey: .overview)

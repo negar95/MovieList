@@ -20,11 +20,11 @@ struct AuthorizedAsyncImage: View {
                     .aspectRatio(contentMode: .fill)
             } else {
                 ProgressView()
-                    .frame(width: 300, height: 400)
             }
         }
         .onAppear {
             loader.load(url: url, withAuthorization: token)
         }
+
     }
 }
