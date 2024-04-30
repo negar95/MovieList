@@ -5,7 +5,7 @@
 //  Created by Negar Moshtaghi on 4/30/24.
 //
 
-import SwiftUI
+import Combine
 
 enum PaginationState {
     case idle
