@@ -21,11 +21,20 @@ struct MovieResponse: Decodable {
     }
 }
 
-struct Movie: Decodable {
+struct Movie: Decodable, Identifiable {
     let id: Int?
-    let posterPath: String?
+    let posterPath: URL?
     let overview: String?
     let title: String?
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decodeIfPresent(Int.self, forKey: .id)
+        let posterPathString = try values.decodeIfPresent(String.self, forKey: .posterPath) ?? ""
+        posterPath = URL(string: imageBaseUrl + posterPathString)
+        overview = try values.decodeIfPresent(String.self, forKey: .overview)
+        title = try values.decodeIfPresent(String.self, forKey: .title)
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
