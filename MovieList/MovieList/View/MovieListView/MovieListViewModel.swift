@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Foundation
 
 enum PaginationState {
     case idle
@@ -29,23 +30,37 @@ class MovieListViewModel: ObservableObject {
         }
     }
 
-    private let movieAPI = MovieAPI()
+    private let movieAPI: MovieAPIProtocol
     private var page = 1
-    private var searchTask: Task<(), Error>?
+    private var cancellables = Set<AnyCancellable>()
+    private var searchCancellables = Set<AnyCancellable>()
+
+    init(movieAPI: MovieAPIProtocol = MovieAPI()) {
+        self.movieAPI = movieAPI
+    }
 
     func loadMovies() {
         paginationState = .loading
-        Task {
-            do {
-                let moviesList = try await movieAPI.list(page: page)
-                movies.formUnion(moviesList.results ?? [])
-                hasMoreMovies = page < moviesList.totalPages ?? page
-                paginationState = .idle
-                if hasMoreMovies { page = page + 1 }
-            } catch {
-                paginationState = .error(message: error.localizedDescription)
-            }
-        }
+        movieAPI.list(page: page)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                guard let self else { return }
+                switch completion {
+                case .finished:
+                    self.paginationState = .idle
+                case let .failure(error):
+                    self.paginationState = .error(message: error.localizedDescription)
+                }
+            }, receiveValue: { [weak self] moviesList in
+                guard let self else { return }
+                self.movies.formUnion(moviesList.results ?? [])
+                self.hasMoreMovies = self.page < moviesList.totalPages ?? self.page
+                self.paginationState = .idle
+                if self.hasMoreMovies {
+                    self.page += 1
+                }
+            })
+            .store(in: &cancellables)
     }
 
     func loadMoreMovies() {
@@ -58,8 +73,8 @@ class MovieListViewModel: ObservableObject {
     }
 
     func clearSearch() {
-        searchTask?.cancel()
-        searchTask = nil
+        searchCancellables.forEach { $0.cancel() }
+        searchCancellables.removeAll()
         page = 1
         movies = []
         loadMovies()
@@ -71,24 +86,32 @@ class MovieListViewModel: ObservableObject {
     }
 
     func search() {
-        searchTask?.cancel()
-        searchTask = nil
+        searchCancellables.forEach { $0.cancel() }
+        searchCancellables.removeAll()
         paginationState = .loading
         page = 1
-        searchTask = Task {
-            do {
-                let moviesSearch = try await movieAPI.search(query: searchText, page: page)
-                movies.formUnion(moviesSearch.results ?? [])
-                hasMoreMovies = page < moviesSearch.totalPages ?? page
-                paginationState = .idle
-                if hasMoreMovies { page = page + 1 }
-            } catch let error {
-                if let _ = error as? CancellationError {
-                    print("Task is cancelled")
-                } else {
-                    paginationState = .error(message: error.localizedDescription)
+        movieAPI.search(query: searchText, page: page)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                guard let self else { return }
+                switch completion {
+                case .finished:
+                    self.paginationState = .idle
+                case .failure(let error):
+                    if error is CancellationError {
+                        print("Search was cancelled")
+                    } else {
+                        self.paginationState = .error(message: error.localizedDescription)
+                    }
                 }
-            }
-        }
+            }, receiveValue: { [weak self] moviesSearch in
+                guard let self else { return }
+                self.movies.formUnion(moviesSearch.results ?? [])
+                self.hasMoreMovies = self.page < moviesSearch.totalPages ?? self.page
+                if self.hasMoreMovies {
+                    self.page += 1
+                }
+            })
+            .store(in: &searchCancellables)
     }
 }

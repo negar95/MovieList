@@ -21,7 +21,7 @@ extension MovieRequest: RequestProtocol {
             return "/discover/movie"
         }
     }
-    
+
     var parameters: RequestParameters? {
         switch self {
         case let .search(query, page):

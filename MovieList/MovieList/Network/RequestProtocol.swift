@@ -16,7 +16,7 @@ enum RequestType { case data }
 enum ResponseType { case json }
 
 let baseUrl = "https://api.themoviedb.org/3"
-let imageBaseUrl = "https://image.tmdb.org/t/p/original"
+let imageBaseUrl = "https://image.tmdb.org/t/p/w500"
 let token = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyNTA5OTU3YzkyZThiNWQ1ODMxZTllYTI4YjI4Njc2NiIsInN1YiI6IjY2MmZjN2IxNjlkMjgwMDEyMzQzOTBkZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.WIoztE5UxssrXbstmj4lf-cJ3hiHfN765_B5pebQemE"
 
 protocol RequestProtocol {
@@ -64,16 +64,17 @@ extension RequestProtocol {
         var request = URLRequest(url: url, timeoutInterval: timeoutInterval)
         request.httpMethod = method.rawValue
         request.setValue(authorizationToken, forHTTPHeaderField: "Authorization")
+        request.cachePolicy = .returnCacheDataElseLoad
         return request
     }
 
-    func verifyResponse(data: Data, response: URLResponse) throws -> (Data, URLResponse) {
+    func verifyResponse(data: Data, response: URLResponse) throws -> Data {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.unknown
         }
         switch httpResponse.statusCode {
         case 200...299:
-            return (data, response)
+            return data
         case 401:
             throw APIError.authorizationError
         case 400...499:

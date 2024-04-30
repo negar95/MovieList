@@ -6,9 +6,10 @@
 //
 
 import Foundation
+import Combine
 
 protocol NetworkManagerProtocol {
-    func request(api: RequestProtocol, retryCount: Int) async throws -> (Data, URLResponse)
+    func request(api: RequestProtocol, retryCount: Int) -> AnyPublisher<Data, Error>
 }
 
 class NetworkManager: NetworkManagerProtocol {
@@ -18,22 +19,15 @@ class NetworkManager: NetworkManagerProtocol {
         self.urlSession = URLSession(configuration: config)
     }
 
-    func request(api: RequestProtocol, retryCount: Int) async throws -> (Data, URLResponse) {
+    func request(api: RequestProtocol, retryCount: Int) -> AnyPublisher<Data, Error> {
         guard let apiRequest = api.urlRequest() else {
-            throw APIError.badRequest
+            return Fail(error: APIError.badRequest).eraseToAnyPublisher()
         }
-        for retryIndex in 0 ..< retryCount {
-            try Task.checkCancellation()
-            do {
-                let (data, response) = try await urlSession.data(for: apiRequest)
-                return try api.verifyResponse(data: data, response: response)
-            } catch where retryIndex < retryCount - 1 {
-                try await Task.sleep(nanoseconds: api.retryDelay)
-                continue
-            } catch {
-                throw error
+        return urlSession.dataTaskPublisher(for: apiRequest)
+            .retry(retryCount)
+            .tryMap { (data, response) in
+                try api.verifyResponse(data: data, response: response)
             }
-        }
-        throw APIError.unknown
+            .eraseToAnyPublisher()
     }
 }

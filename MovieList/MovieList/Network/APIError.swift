@@ -10,6 +10,7 @@ public enum APIError: Error, CustomStringConvertible, Equatable {
     case authorizationError
     case serverError
     case unknown
+    case invalidSelf
 
     public var description: String {
         switch self {
@@ -21,6 +22,8 @@ public enum APIError: Error, CustomStringConvertible, Equatable {
             return "server error"
         case .unknown:
             return "unknown error"
+        case .invalidSelf:
+            return "invalid self"
         }
     }
 }
