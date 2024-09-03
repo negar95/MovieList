@@ -26,6 +26,7 @@
 		891DAD162BE060510013679A /* MovieListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 891DAD152BE060510013679A /* MovieListViewModel.swift */; };
 		891DAD182BE064880013679A /* MovieListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 891DAD172BE064880013679A /* MovieListView.swift */; };
 		891DAD1A2BE06D670013679A /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 891DAD192BE06D670013679A /* AboutView.swift */; };
+		898D8F902C7788B70074BFD2 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 898D8F8F2C7788B70074BFD2 /* Player.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,6 +70,7 @@
 		891DAD152BE060510013679A /* MovieListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieListViewModel.swift; sourceTree = "<group>"; };
 		891DAD172BE064880013679A /* MovieListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieListView.swift; sourceTree = "<group>"; };
 		891DAD192BE06D670013679A /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		898D8F8F2C7788B70074BFD2 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -209,6 +211,7 @@
 			children = (
 				891DAD152BE060510013679A /* MovieListViewModel.swift */,
 				891DAD172BE064880013679A /* MovieListView.swift */,
+				898D8F8F2C7788B70074BFD2 /* Player.swift */,
 			);
 			path = MovieListView;
 			sourceTree = "<group>";
@@ -356,6 +359,7 @@
 				891DAD002BE0118B0013679A /* Movie.swift in Sources */,
 				891DAD182BE064880013679A /* MovieListView.swift in Sources */,
 				891DAD052BE0159B0013679A /* RequestProtocol.swift in Sources */,
+				898D8F902C7788B70074BFD2 /* Player.swift in Sources */,
 				891DAD162BE060510013679A /* MovieListViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

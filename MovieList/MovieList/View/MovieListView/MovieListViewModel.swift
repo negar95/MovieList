@@ -40,27 +40,33 @@ class MovieListViewModel: ObservableObject {
     }
 
     func loadMovies() {
-        paginationState = .loading
-        movieAPI.list(page: page)
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { [weak self] completion in
-                guard let self else { return }
-                switch completion {
-                case .finished:
-                    self.paginationState = .idle
-                case let .failure(error):
-                    self.paginationState = .error(message: error.localizedDescription)
-                }
-            }, receiveValue: { [weak self] moviesList in
-                guard let self else { return }
-                self.movies.formUnion(moviesList.results ?? [])
-                self.hasMoreMovies = self.page < moviesList.totalPages ?? self.page
-                self.paginationState = .idle
-                if self.hasMoreMovies {
-                    self.page += 1
-                }
-            })
-            .store(in: &cancellables)
+
+        let url = URL(string: "http://203.161.38.36/api/v1/radio/stream/68fe584ac273ed66fb1ed2cd15c8e857e7b30b606cd0011f8eb77de0cadfaa19/")!
+
+        let player = HLSAudioStreamer(url: url)
+        player.play()
+
+//        paginationState = .loading
+//        movieAPI.list(page: page)
+//            .receive(on: DispatchQueue.main)
+//            .sink(receiveCompletion: { [weak self] completion in
+//                guard let self else { return }
+//                switch completion {
+//                case .finished:
+//                    self.paginationState = .idle
+//                case let .failure(error):
+//                    self.paginationState = .error(message: error.localizedDescription)
+//                }
+//            }, receiveValue: { [weak self] moviesList in
+//                guard let self else { return }
+//                self.movies.formUnion(moviesList.results ?? [])
+//                self.hasMoreMovies = self.page < moviesList.totalPages ?? self.page
+//                self.paginationState = .idle
+//                if self.hasMoreMovies {
+//                    self.page += 1
+//                }
+//            })
+//            .store(in: &cancellables)
     }
 
     func loadMoreMovies() {
