@@ -7,20 +7,38 @@
 
 import SwiftUI
 
-class ImageLoader: ObservableObject {
+final class ImageCache {
+    static let shared = NSCache<NSURL, UIImage>()
+}
+
+@MainActor
+final class ImageLoader: ObservableObject {
     @Published var image: Image?
+    @Published var hasError: Bool = false
 
     func load(url: URL?, withAuthorization token: String) {
         guard let url else { return }
-        var request = URLRequest(url: url)
-        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data, let uiImage = UIImage(data: data) {
-                DispatchQueue.main.async {
-                    self.image = Image(uiImage: uiImage)
+        if let cached = ImageCache.shared.object(forKey: url as NSURL) {
+            self.image = Image(uiImage: cached)
+            return
+        }
+
+        Task {
+            do {
+                var request = URLRequest(url: url)
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                let (data, _) = try await URLSession.shared.data(for: request)
+                guard let uiImage = UIImage(data: data) else {
+                    self.hasError = true
+                    return
                 }
+
+                ImageCache.shared.setObject(uiImage, forKey: url as NSURL)
+                self.image = Image(uiImage: uiImage)
+            } catch {
+                self.hasError = true
             }
-        }.resume()
+        }
     }
 }

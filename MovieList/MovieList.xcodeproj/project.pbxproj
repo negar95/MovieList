@@ -122,7 +122,6 @@
 			isa = PBXGroup;
 			children = (
 				891DAD062BE01B1D0013679A /* View */,
-				891DAD012BE012A90013679A /* Network */,
 				891DACFC2BE011680013679A /* Model */,
 				891DACFB2BE011610013679A /* Domain */,
 				891DACD02BE011390013679A /* MovieListApp.swift */,
@@ -175,13 +174,6 @@
 				891DACFF2BE0118B0013679A /* Movie.swift */,
 			);
 			path = Model;
-			sourceTree = "<group>";
-		};
-		891DAD012BE012A90013679A /* Network */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Network;
 			sourceTree = "<group>";
 		};
 		891DAD062BE01B1D0013679A /* View */ = {

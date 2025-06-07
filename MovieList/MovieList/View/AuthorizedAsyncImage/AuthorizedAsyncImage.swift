@@ -17,7 +17,11 @@ struct AuthorizedAsyncImage: View {
             if let image = loader.image {
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .scaledToFill()
+            } else if loader.hasError {
+                Image(systemName: "photo")
+                    .resizable()
+                    .scaledToFit()
             } else {
                 ProgressView()
             }
@@ -25,6 +29,5 @@ struct AuthorizedAsyncImage: View {
         .onAppear {
             loader.load(url: url, withAuthorization: token)
         }
-
     }
 }
