@@ -36,6 +36,13 @@ struct Movie: Decodable, Identifiable, Hashable {
         title = try values.decodeIfPresent(String.self, forKey: .title)
     }
 
+    public init(id: Int, posterPath: URL?, overview: String?, title: String?) {
+        self.id = id
+        self.posterPath = posterPath
+        self.overview = overview
+        self.title = title
+    }
+
     enum CodingKeys: String, CodingKey {
         case id
         case posterPath = "poster_path"

@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Foundation
 
 enum PaginationState {
     case idle
@@ -15,43 +16,53 @@ enum PaginationState {
 
 @MainActor
 class MovieListViewModel: ObservableObject {
-    @Published var movies = Set<Movie>()
+    @Published var movies: [Movie] = []
     @Published var hasMoreMovies = true
     @Published var paginationState: PaginationState = .idle
-    @Published var searchText = "" {
-        didSet {
-            if !oldValue.isEmpty && searchText.isEmpty {
-                clearSearch()
-            } else if searchText.count > 1 {
-                resetForSearch()
-                search()
-            }
-        }
-    }
+    @Published var searchText = ""
 
-    private let movieAPI = MovieAPI()
+    private let movieAPI: MovieAPIProtocol
     private var page = 1
     private var searchTask: Task<(), Error>?
+    private var cancellables = Set<AnyCancellable>()
 
-    func loadMovies() {
+    init(movieAPI: MovieAPIProtocol = MovieAPI()) {
+        self.movieAPI = movieAPI
+        $searchText
+            .removeDuplicates()
+            .debounce(for: .milliseconds(400), scheduler: RunLoop.main)
+            .sink { [weak self] text in
+                guard let self else { return }
+                if text.isEmpty {
+                    clearSearch()
+                } else if text.count > 1 {
+                    resetForSearch()
+                    search()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    func loadMovies() async {
         paginationState = .loading
-        Task {
             do {
                 let moviesList = try await movieAPI.list(page: page)
-                movies.formUnion(moviesList.results ?? [])
-                hasMoreMovies = page < moviesList.totalPages ?? page
+                appendUniqueMovies(moviesList.results ?? [])
+                hasMoreMovies = page < (moviesList.totalPages ?? page)
                 paginationState = .idle
-                if hasMoreMovies { page = page + 1 }
+                if hasMoreMovies { page += 1 }
             } catch {
                 paginationState = .error(message: error.localizedDescription)
             }
-        }
+
     }
 
     func loadMoreMovies() {
         guard hasMoreMovies else { return }
         if searchText.isEmpty {
-            loadMovies()
+            Task {
+                await loadMovies()
+            }
         } else {
             search()
         }
@@ -62,7 +73,9 @@ class MovieListViewModel: ObservableObject {
         searchTask = nil
         page = 1
         movies = []
-        loadMovies()
+        Task {
+            await loadMovies()
+        }
     }
 
     func resetForSearch() {
@@ -78,17 +91,21 @@ class MovieListViewModel: ObservableObject {
         searchTask = Task {
             do {
                 let moviesSearch = try await movieAPI.search(query: searchText, page: page)
-                movies.formUnion(moviesSearch.results ?? [])
-                hasMoreMovies = page < moviesSearch.totalPages ?? page
+                appendUniqueMovies(moviesSearch.results ?? [])
+                hasMoreMovies = page < (moviesSearch.totalPages ?? page)
                 paginationState = .idle
-                if hasMoreMovies { page = page + 1 }
+                if hasMoreMovies { page += 1 }
             } catch let error {
-                if let _ = error as? CancellationError {
-                    print("Task is cancelled")
-                } else {
+                if !(error is CancellationError) {
                     paginationState = .error(message: error.localizedDescription)
                 }
             }
         }
+    }
+
+    private func appendUniqueMovies(_ newMovies: [Movie]) {
+        let existingIDs = Set(movies.map { $0.id })
+        let unique = newMovies.filter { !existingIDs.contains($0.id) }
+        movies.append(contentsOf: unique)
     }
 }

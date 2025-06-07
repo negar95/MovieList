@@ -12,40 +12,45 @@ struct MovieListView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(Array(viewModel.movies)) { movie in
-                    MovieView(movie: movie)
-                        .listRowSeparator(.hidden)
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    ForEach(viewModel.movies) { movie in
+                        MovieView(movie: movie)
+                            .onAppear {
+                                if movie == viewModel.movies.last {
+                                    viewModel.loadMoreMovies()
+                                }
+                            }
+                    }
+                    paginationFooter
                 }
-                if viewModel.hasMoreMovies {
-                    lastRowView
-                }
+                .padding()
             }
-            .listStyle(.plain)
-        }
-        .searchable(text: $viewModel.searchText, prompt: "Search movies")
-        .navigationTitle("Movies")
-        .onAppear {
-            viewModel.loadMovies()
+            .navigationTitle("Movies")
+            .searchable(text: $viewModel.searchText, prompt: "Search movies")
+            .animation(.easeInOut, value: viewModel.movies.count)
         }
     }
 
-    var lastRowView: some View {
-        ZStack(alignment: .center) {
+    var paginationFooter: some View {
+        ZStack {
             switch viewModel.paginationState {
             case .loading:
-                ProgressView()
-            case .idle:
-                EmptyView()
+                ProgressView().frame(height: 50)
             case .error(let error):
-                Text(error)
-                    .font(.body)
-                    .foregroundStyle(Color.red)
+                VStack(spacing: 8) {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                    Button("Retry") {
+                        viewModel.loadMoreMovies()
+                    }
+                    .font(.caption)
+                }
+                .frame(height: 60)
+            case .idle:
+                EmptyView().frame(height: 10)
             }
-        }
-        .frame(height: 50)
-        .onAppear {
-            viewModel.loadMoreMovies()
         }
     }
 }

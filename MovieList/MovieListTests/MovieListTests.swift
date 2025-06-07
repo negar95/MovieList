@@ -1,35 +1,92 @@
 //
-//  MovieListTests.swift
-//  MovieListTests
+//  MovieListViewModelTests.swift
+//  MovieList
 //
-//  Created by Negar Moshtaghi on 4/29/24.
+//  Created by Negar Moshtaghi on 6/7/25.
 //
 
-import XCTest
+import Foundation
+import Testing
+@testable import MovieList
 
-final class MovieListTests: XCTestCase {
+@Suite
+struct MovieListViewModelTests {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    @Test
+    @MainActor
+    func testLoadMovies_appendsMovies() async {
+        let mockAPI = MockMovieAPI()
+        let viewModel = MovieListViewModel(movieAPI: mockAPI)
+
+        await viewModel.loadMovies()
+
+        #expect(viewModel.movies.count == 2)
+        #expect(viewModel.movies.contains { $0.title == "Movie A" })
+        #expect(viewModel.hasMoreMovies == false)
+        #expect(mockAPI.listCalled)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    @Test
+    @MainActor
+    func testSearch_updatesMoviesWithResults() async {
+        let mockAPI = MockMovieAPI()
+        let viewModel = MovieListViewModel(movieAPI: mockAPI)
+
+        viewModel.searchText = "Avengers"
+        try? await Task.sleep(nanoseconds: 500_000_000) // Wait for debounce
+
+        #expect(viewModel.movies.count == 1)
+        #expect(viewModel.movies.first?.title == "Movie C")
+        #expect(mockAPI.searchCalled)
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    @Test
+    @MainActor
+    func testClearSearch_resetsAndLoadsDefault() async {
+        let mockAPI = MockMovieAPI()
+        let viewModel = MovieListViewModel(movieAPI: mockAPI)
+
+        viewModel.searchText = "Anything"
+        try? await Task.sleep(nanoseconds: 500_000_000)
+
+        viewModel.searchText = ""
+        try? await Task.sleep(nanoseconds: 500_000_000)
+
+        #expect(mockAPI.listCalled)
+        #expect(viewModel.searchText.isEmpty)
+        #expect(viewModel.movies.count == 2)
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        measure {
-            // Put the code you want to measure the time of here.
+    @Test
+    @MainActor
+    func testNoDuplicateMoviesAdded() async {
+        let mockAPI = MockMovieAPI()
+        let viewModel = MovieListViewModel(movieAPI: mockAPI)
+
+        await viewModel.loadMovies()
+        await viewModel.loadMovies() // simulate second load with same data
+
+        #expect(viewModel.movies.count == 2) // No duplicates
+    }
+
+    @Test
+    @MainActor
+    func testLoadMovies_handlesError() async {
+        final class FailingAPI: MovieAPIProtocol {
+            func list(page: Int) async throws -> MovieResponse {
+                throw URLError(.badServerResponse)
+            }
+
+            func search(query: String, page: Int) async throws -> MovieResponse {
+                throw URLError(.cannotFindHost)
+            }
+        }
+
+        let viewModel = MovieListViewModel(movieAPI: FailingAPI())
+        await viewModel.loadMovies()
+
+        if case let .error(message) = viewModel.paginationState {
+            #expect(!message.isEmpty)
         }
     }
-
 }
