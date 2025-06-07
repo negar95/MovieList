@@ -31,7 +31,7 @@ struct Movie: Decodable, Identifiable, Hashable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = try values.decode(Int.self, forKey: .id)
         let posterPathString = try values.decodeIfPresent(String.self, forKey: .posterPath) ?? ""
-        posterPath = URL(string: imageBaseUrl + posterPathString)
+        posterPath = URL(string: NetworkConstants.imageBaseUrl + posterPathString)
         overview = try values.decodeIfPresent(String.self, forKey: .overview)
         title = try values.decodeIfPresent(String.self, forKey: .title)
     }

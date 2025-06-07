@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Network
 
 enum MovieRequest {
     case search(query: String, page: Int)
@@ -13,6 +14,9 @@ enum MovieRequest {
 }
 
 extension MovieRequest: RequestProtocol {
+    var method: RequestMethod { .get }
+    var headers: RequestHeaders? { ["Authorization": NetworkConstants.bearerToken] }
+
     var path: String {
         switch self {
         case .search:

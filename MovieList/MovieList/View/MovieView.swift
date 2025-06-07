@@ -13,7 +13,7 @@ struct MovieView: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            AuthorizedAsyncImage(url: movie.posterPath, token: token)
+            AuthorizedAsyncImage(url: movie.posterPath, token: NetworkConstants.token)
             VStack {
                 HStack {
                     Text(movie.title ?? "")

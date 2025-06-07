@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Network
 
 protocol MovieAPIProtocol {
     func search(query: String, page: Int) async throws -> MovieResponse
@@ -25,12 +26,12 @@ final class MovieAPI: MovieAPIProtocol {
     }
 
     func search(query: String, page: Int) async throws -> MovieResponse {
-        let (data, _) = try await networkManager.request(api: MovieRequest.search(query: query, page: page), retryCount: 2)
+        let (data, _) = try await networkManager.request(MovieRequest.search(query: query, page: page), retryCount: 2)
         return try jsonDecoder.decode(MovieResponse.self, from: data)
     }
     
     func list(page: Int) async throws -> MovieResponse {
-        let (data, _) = try await networkManager.request(api: MovieRequest.list(page: page), retryCount: 4)
+        let (data, _) = try await networkManager.request(MovieRequest.list(page: page), retryCount: 4)
         return try jsonDecoder.decode(MovieResponse.self, from: data)
     }
 }
