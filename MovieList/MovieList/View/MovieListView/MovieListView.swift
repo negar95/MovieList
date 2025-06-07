@@ -15,6 +15,7 @@ struct MovieListView: View {
             List {
                 ForEach(Array(viewModel.movies)) { movie in
                     MovieView(movie: movie)
+                        .listRowSeparator(.hidden)
                 }
                 if viewModel.hasMoreMovies {
                     lastRowView

@@ -23,7 +23,11 @@ struct AuthorizedAsyncImage: View {
                     .resizable()
                     .scaledToFit()
             } else {
-                ProgressView()
+                HStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
             }
         }
         .onAppear {
